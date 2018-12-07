@@ -9,3 +9,5 @@ Java8 released with many new exciting features, some of those are:
 
 ## Code Examples
 - [Declarative Vs Imperative Programming]
+This site was built using [GitHub Pages](https://pages.github.com/).
+
