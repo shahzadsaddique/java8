@@ -2,7 +2,7 @@ package java8.lambda;
 
 import java.util.Comparator;
 
-public class LambdaExample02ComparatorImplementation {
+public class LambdaComparatorImplementation {
 
     public static void main(String[] args) {
         /**

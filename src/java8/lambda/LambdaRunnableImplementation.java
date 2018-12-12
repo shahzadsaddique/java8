@@ -1,6 +1,6 @@
 package java8.lambda;
 
-public class LambdaExample01RunnableImplementation {
+public class LambdaRunnableImplementation {
 
     public static void main(String[] args) {
 
