@@ -17,7 +17,7 @@ Java8 released with many new exciting features, some of those are:
 
 - ###  [Functional Interfaces](https://github.com/shahzadsaddique/java8/tree/master/src/java8/functionalinterfaces)<br/>
     Interfaces that have only one abstract method, but they can have multiple default methods. Functional Interfaces introduced in Java8. <br/> **@FunctionalInterface** is an optional annotation can be used with functional interfaces to make sure that an interface is not breaking the rule i.e Only a single abstract method. <br/> Four types of new functional interfaces were introduced in java8 which are:
-     - **Consumer** <br/> A Functional Interface wih one abstract method named "accept" and one default method named "andThen". The "accept" method takes one argument, performs action on it, and returns nothing. Usually Consumer Interface used where return value is not needed.<br/> For more details about Consumer Interface please have a look on this [**Code Example**](https://github.com/shahzadsaddique/java8/blob/master/src/java8/functionalinterfaces/ConsumerFunctionalInterfaceExample.java)
+     - **Consumer** <br/> A Functional Interface with one abstract method named "accept" and one default method named "andThen". The "accept" method takes one argument, performs action on it, and returns nothing. Usually Consumer Interface used where return value is not needed.<br/> For more details about Consumer Interface please have a look on this [**Code Example**](https://github.com/shahzadsaddique/java8/blob/master/src/java8/functionalinterfaces/ConsumerFunctionalInterfaceExample.java)
      - **Predicate**
      - **Function**
      - **Supplier**
