@@ -7,7 +7,7 @@ public class UnaryOperatorFunctionalInterfaceExample {
     /**
      * UnaryOperator is a functional interface which extends Function interface, Introduced in java8
      * Accepts one input and return the same type of value as output
-     * We can use this interface instead of Function where, we know that input and output are going to be of same type
+     * We can use this interface instead of Function, where we know that input and output are going to be of same type
      */
 
     public static void main(String[] args) {
