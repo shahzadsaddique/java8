@@ -26,5 +26,5 @@ Java8 released with many new exciting features, some of those are:
      - #### Function 
         Function is a Functional Interface, introduced in java8, has an abstract method 'apply', three default methods 'andThen', 'compose' and 'identity'. This interface is same as a function, takes one input of type T, and returns output of type R. <br/>Implementing this interface will be same as creating method in java. Return type of Function has to be pass as 2nd input while creating the object i.e Function<Integer,Double>, here the 2nd parameter which is double in this example Double will be the return type of this function. Check this [**Code Example**](https://github.com/shahzadsaddique/java8/blob/master/src/java8/functionalinterfaces/FunctionFunctionalInterfaceExample.java) to see the implementation of this interface.<br/>
         Function interface also has an extension called **BiFunction**. BiFunction accepts two inputs and returns a value of required type. Check [**BiFunction Code Example**](https://github.com/shahzadsaddique/java8/blob/master/src/java8/functionalinterfaces/BiFunctionFunctionalInterfaceExample.java) for more details.      
-     - **Supplier**
+     - #### Supplier
         
