@@ -33,17 +33,18 @@ public class FunctionFunctionalInterfaceExample {
 
         /**
          * Example 02
-         *  In this example we are going to create a function which will return HashMap of Students having their Names and Activities
+         *  In this example we are going to create a function which will return HashMap of Students
+         *  having their Names and Activities
          *  Data will be used from StudentDatabase class under the Data package
          */
 
         //this "studentFunction" is going to accept List of student and return their Names and Activities
         Function<List<Student>, HashMap<String,List<String>>> studentFunction = students -> {
-          HashMap<String, List<String>> gradesAndActivitesHashMap  =  new HashMap<>();
+          HashMap<String, List<String>> namesAndActivitesHashMap  =  new HashMap<>();
           students.forEach(student -> {
-              gradesAndActivitesHashMap.put(student.getName(),student.getActivities());
+              namesAndActivitesHashMap.put(student.getName(),student.getActivities());
           });
-          return gradesAndActivitesHashMap;
+          return namesAndActivitesHashMap;
         };
 
         System.out.println(studentFunction.apply(StudentDataBase.getAllStudents()));
