@@ -6,7 +6,7 @@ public class LambdaComparatorImplementation {
 
     public static void main(String[] args) {
         /**
-         * Old java Comparator Implementation
+         * Prior java Comparator Implementation
          */
 
         /** Example 01
