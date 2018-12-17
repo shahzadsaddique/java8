@@ -13,7 +13,7 @@ public class MethodReferencesExamples {
      * They are shorthand syntax of Lambda expressions
      * We can use them to replace Lambda expressions, and we here don't need to pass the arguments manually,
      * If the method accepts arguments they passed automatically behind the scenes
-     * Simple syntax of Method references is
+     * Syntax of Method references is
      *      ClassName :: methodName
      */
 
