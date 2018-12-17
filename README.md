@@ -1,7 +1,8 @@
 # New in Java8
 Java8 released with many new exciting features, some of these are:
-- Lambda expressions
-- Functional interfaces
+- [Lambda expressions](https://github.com/shahzadsaddique/java8#lambda-expressions)
+- [Functional interfaces](https://github.com/shahzadsaddique/java8#functional-interfaces)
+- [Method and Constructor References](https://github.com/shahzadsaddique/java8#method-reference)
 - Streams API
 - Optional 
 - New Date/Time API
