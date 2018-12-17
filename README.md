@@ -34,3 +34,8 @@ Java8 released with many new exciting features, some of these are:
 - ###  [Method Reference](https://github.com/shahzadsaddique/java8/tree/master/src/java8/methodreferences)<br/>
     We can simplify the implementation of Functional Interface using Method references
     , Introduced in java8. They are shorthand syntax of Lambda expressions. We can use them to replace Lambda expressions, and here we don't need to pass the arguments manually, If the method accepts arguments they passed automatically behind the scenes. <br/> Syntax of Method references is **ClassName::methodName**. For code examples and other implementation details check this [**Examples File**](https://github.com/shahzadsaddique/java8/blob/master/src/java8/methodreferences/MethodReferencesExamples.java)
+    
+- ###  [Constructor Reference](https://github.com/shahzadsaddique/java8/tree/master/src/java8/constructorreference)<br/>
+    Constructor Reference is the term similar to Method Reference, Method References used for methods while Constructor References used for Constructors. Using Method References we call methods of any class, Using Constructor Reference we can call constructors to create new objects. <br/> Syntax of Constructor Reference is : **ClassName::new** <br/>
+    If the Constructor of any class is non-argumental then Supplier interface will be use to create object, and if Constructor accepts one or two arguments Function interface will be used to initialize objects. Have a look on this [**Implementation Example**](https://github.com/shahzadsaddique/java8/blob/master/src/java8/constructorreference/ConstructorReferencExamples.java) for more details.
+    
