@@ -6,7 +6,7 @@ Java8 released with many new exciting features, some of these are:
 - Streams API
 - Optional 
 - New Date/Time API
-- Declarative programming with Lambdas and Functional interfaces
+- [Declarative programming with Lambda](https://github.com/shahzadsaddique/java8#declarative-vs-imperative-programming)
 
 ## Code Examples
 
