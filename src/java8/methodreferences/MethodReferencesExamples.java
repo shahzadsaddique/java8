@@ -5,6 +5,7 @@ import java8.data.StudentDataBase;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class MethodReferencesExamples {
 
@@ -51,6 +52,7 @@ public class MethodReferencesExamples {
         /**
          * Example 03
          * Let's see another example from Student Class
+         * We can create our own Methods to use them as Method Reference
          * We will print student's activities by calling a Method of Student class
          */
         System.out.println("Example 03");
@@ -63,5 +65,16 @@ public class MethodReferencesExamples {
         //do the same thing using Method Reference
         Consumer<Student> studentConsumerMethodRef = Student::printListOfActivities;
         StudentDataBase.getAllStudents().forEach(studentConsumerMethodRef);
+
+        /**
+         * Example 04
+         * We can also use Method reference to create an object
+         * To get object from a Method Reference we will use Supplier Interface
+         */
+        System.out.println("Example 04");
+        //this supplier will create and return an empty Student object
+        Supplier<Student> studentSupplier =  Student::new;
+        System.out.println(studentSupplier.get());
+
     }
 }
