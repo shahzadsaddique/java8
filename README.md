@@ -3,7 +3,7 @@ Java8 released with many new exciting features, some of these are:
 - [Lambda expressions](https://github.com/shahzadsaddique/java8#lambda-expressions)
 - [Functional interfaces](https://github.com/shahzadsaddique/java8#functional-interfaces)
 - [Method and Constructor References](https://github.com/shahzadsaddique/java8#method-reference)
-- Streams API
+- [Streams API](https://github.com/shahzadsaddique/java8#streams-api)
 - Optional 
 - New Date/Time API
 - [Declarative programming with Lambda](https://github.com/shahzadsaddique/java8#declarative-vs-imperative-programming)
@@ -41,4 +41,6 @@ Java8 released with many new exciting features, some of these are:
     If the Constructor of any class is non-argumental then Supplier interface will be use to create object, and if Constructor accepts one or two arguments Function interface will be used to initialize objects. Have a look on this [**Implementation Example**](https://github.com/shahzadsaddique/java8/blob/master/src/java8/constructorreference/ConstructorReferencExamples.java) for more details.
     
 - ###  [Streams API](https://github.com/shahzadsaddique/java8/tree/master/src/java8/streams)<br/>
-    Stream API introduced in java8, It performs operations on collections of objects. Stream API can be used with Java Collections, Arrays, and IO channels. Operations can be parallel and sequential, parallel operations are much easier with stream api. <br/> Stream can have multiple intermediate operations, each intermediate operation returns a stream. There must be a terminal operation at the end of stream. In stream intermediate operations are lazy, this means if there is no terminal operation in the steam intermediate operations will not be executed. For implementation details check this [**Code Example**](https://github.com/shahzadsaddique/java8/blob/master/src/java8/streams/StreamAPIExamples.java)
+    Stream API introduced in java8, It performs operations on collection of objects. Stream API can be used with Java Collections, Arrays, and IO channels. Operations can be parallel and sequential, parallel operations are much easier with stream api. <br/> Stream can have multiple intermediate operations, each intermediate operation returns a stream. There must be a terminal operation at the end of stream. In stream intermediate operations are lazy, this means if there is no terminal operation in the steam, intermediate operations will not be executed. For implementation details check this [**Code Example**](https://github.com/shahzadsaddique/java8/blob/master/src/java8/streams/StreamAPIExamples.java).<br/>Some commonly used operations of Stream API 
+    - #### map() and flatMap()
+         map(): map function takes a function as input and apply it on the given object and transfer it into other object, and returns the stream consist of results. <br/> flatMap(): flatMap work on Collections of Collections i.e List of list, accepts a function as input apply it on given data, and returns one or more values. See these [**Code Examples**]() for more details. 
