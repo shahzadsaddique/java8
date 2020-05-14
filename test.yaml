@@ -1,22 +1,543 @@
 openapi: 3.0.0
-servers:
-  - url: 'https://api.allsorter.com'
 info:
-  description: Allsorter Parser API
   version: 1.0.0
   title: Allsorter Parser API
+  description: Allsorter Parser API
   contact:
-    email: atieq.rehman@syndicatealpha.com
+    email: info@allsorter.com
+
+servers:
+  - url: 'https://api.allsorter.com'
 paths:
+
+  /oidcwrapper/jobadder/authorize:
+    get:
+      tags:
+        - 'Allsorter OIDC Wrapper'
+      summary: "Helper endpoint to connect AWS OpenId and JobAdder auth flow. This endpoint adds custom scope i.e read, write, offline_access etc to request and forwards auth request to JobAdder. AWS cognito use this endpoint because from aws congito we can not put custom scopes in auth request."
+      parameters:
+        - in: query
+          name: scope
+          example: openid
+          description: Scope for auth request
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: client_id
+          example: 12345abcXYZ
+          description: Client id for auth request
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: response_type
+          example: code
+          description: Response type for auth request
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: redirect_uri
+          example: https://abc.com/auth-code
+          description: Redirect uri for auth request, where the auth code will be sent
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: state
+          example: xyz1234567890abc
+          description: State value for auth request to keep auth request secure
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '302':
+          description: "Redirects to the JobAdder authorization page with custom scopes. The user authenticates and approves auth request. The user is redirected back to AWS cognito with an authorization code in the query string."
+
+  /oidcwrapper/jobadder/accessToken:
+    post:
+      tags:
+        - 'Allsorter OIDC Wrapper'
+      summary: "Helper endpoint to connect AWS OpenId and JobAdder auth flow. To avoid authentication again, parser-api needs to save JobAdder auth info, this endpoint will save the JobAdder auth info in parser-api database and also returns to aws congito."
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  description: The way how you want to get an access token
+                  type: string
+                  example: authorization_code
+                code:
+                  description: authorization_code or refresh_token which you want to exchanged for an access token
+                  type: string
+                  example: abc123
+                client_id:
+                  description: Issued from JobAdder when application created
+                  type: string
+                  example: abc123XYZ
+                client_secret:
+                  description: Issued from JobAdder when application created
+                  type: string
+                  example: abc123XYZ
+                redirect_uri:
+                  description: Redirect uri for auth request to varify the request
+                  example: https://abc.com/auth
+      responses:
+        '200':
+          description: Return a JSON response containing the JobAdder access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: 31ff7431b4c1dde02e386122702f5460
+                  expires_in:
+                    type: integer
+                    example: 3600
+                  token_type:
+                    type: string
+                    example: Bearer
+                  refresh_token:
+                    type: string
+                    example: e7672885d6da2db1e56d200dd292c801
+                  api:
+                    type: string
+                    example: https://api.jobadder.com/v2
+
+  /oidcwrapper/jobadder/userinfo:
+    get:
+      tags:
+        - 'Allsorter OIDC Wrapper'
+      summary: "Helper endpoint to connect AWS OpenId and JobAdder auth flow. Parser-api needs to save JobAdder user info, this endpoint will save the JobAdder user info in parser-api database and also returns to aws congito."
+      parameters:
+        - in: header
+          name: Authorization
+          example: Bearer 31ff7431b4c1dde02e386122702f5460
+          description: Access token to get user info from JobAdder
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return a JSON response user info received from JobAdder
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sub:
+                    type: integer
+                    example: 112233
+                  email:
+                    type: string
+                    example: user@openapi.com
+                  firstName:
+                    type: string
+                    example: openapi
+                  lastName:
+                    type: string
+                    example: user
+
+  /oidcwrapper/bullhorn/authorize:
+    get:
+      tags:
+        - 'Allsorter OIDC Wrapper'
+      summary: "Helper endpoint to connect AWS OpenId and Bullhorn auth flow. This endpoint manage auth flow for Bullhorn. AWS cognito use this endpoint because from aws congito we can not directly connect to Bullhorn for auth."
+      parameters:
+        - in: query
+          name: scope
+          example: openid
+          description: Scope for auth request
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: client_id
+          example: 12345abcXYZ
+          description: Client id for auth request
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: response_type
+          example: code
+          description: Response type for auth request
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: redirect_uri
+          example: https://abc.com/auth-code
+          description: Redirect uri for auth request, where the auth code will be sent
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: state
+          example: xyz1234567890abc
+          description: State value for auth request to keep auth request secure
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '302':
+          description: "Redirects to the Bullhorn authorization page. The user authenticates and approves auth request. The user is redirected back to aws cognito with an authorization code in the query string."
+
+  /oidcwrapper/bullhorn/accessToken:
+    post:
+      tags:
+        - 'Allsorter OIDC Wrapper'
+      summary: "Helper endpoint to connect AWS OpenId and Bullhorn auth flow. This endopint return access token to AWS congito because aws cognito can not directly get access token from Bullhorn."
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  description: The way how you want to get an access token
+                  type: string
+                  example: authorization_code
+                code:
+                  description: authorization_code or refresh_token which you want to exchanged for an access token
+                  type: string
+                  example: abc123
+                client_id:
+                  description: Issued from Bullhorn when application created
+                  type: string
+                  example: abc123XYZ
+                client_secret:
+                  description: Issued from Bullhorn when application created
+                  type: string
+                  example: abc123XYZ
+                redirect_uri:
+                  description: Redirect uri for auth request to varify the request
+                  example: https://abc.com/auth
+      responses:
+        '200':
+          description: Return a JSON response containing the Bullhorn access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: 31ff7431b4c1dde02e386122702f5460
+                  expires_in:
+                    type: integer
+                    example: 3600
+                  token_type:
+                    type: string
+                    example: Bearer
+                  refresh_token:
+                    type: string
+                    example: e7672885d6da2db1e56d200dd292c801
+
+  /oidcwrapper/bullhorn/userinfo:
+    get:
+      tags:
+        - 'Allsorter OIDC Wrapper'
+      summary: "Helper endpoint to connect AWS OpenId and Bullhorn auth flow. This endpoint get user info from Bullhorn and return that JSON object to aws congnito, because cognito can not get this info directly."
+      parameters:
+        - in: header
+          name: Authorization
+          example: Bearer 31ff7431b4c1dde02e386122702f5460
+          description: Access token to get user info from Bullhorn
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return a JSON response user info received from Bullhorn
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sub:
+                    type: integer
+                    example: 112233
+                  email:
+                    type: string
+                    example: user@openapi.com
+                  firstName:
+                    type: string
+                    example: openapi
+                  lastName:
+                    type: string
+                    example: user
+                  token:
+                    type: string
+                    example: BhRestToken=899309b8-9ed3-409d-b06a-d5da50cc3253restUrl=https://rest91.bullhornstaffing.com/rest-services/5wnfu1/refresh_token=91:c85bfcb7-cf56-41ff-9531-c68fb90f2ee6
+
+  /ats-partner/findAll:
+    get:
+      tags:
+        - ATS partners
+      summary: "Get all ATS partners"
+      parameters:
+        - in: header
+          name: Authorization
+          example: Bearer 31ff7431b4c1dde02e386122702f5460
+          description: Machine to machine access token is required
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return a list of ATS partners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: integer
+                      example: 1122
+                    name:
+                      type: string
+                      example: JobAdder
+                    accountId:
+                      type: string
+                      example: 12345
+                    accountAdminId:
+                      type: string
+                      example: 12345
+                    accessToken:
+                      type: string
+                      example: Bearer c5e7b57d3d89acd04cf0af96ddd01010
+                    refreshToken:
+                      type: string
+                      example: c5e7b57d3d89cd04cf0af96ddd01010
+                    restUrl:
+                      type: string
+                      example: https://sandboxapi.jobadder.com/v2/
+                    createdDate:
+                      type: string
+                      format: date-time
+                      example: "2020-03-22T11:27:13.979Z"
+                    modifiedDate:
+                      type: string
+                      format: date-time
+                      example: "2020-03-22T11:27:13.979Z"
+
+  /ats-partner/{accountId}:
+    get:
+      tags:
+        - ATS partners
+      summary: "Find ATS partner by partner account ID"
+      parameters:
+        - in: header
+          name: Authorization
+          example: Bearer 31ff7431b4c1dde02e386122702f5460
+          description: Machine to machine access token is required
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: accountId
+          description:  ATS Partner account ID
+          required: true
+          schema:
+            type: string
+          example: 123-abc
+      responses:
+        '200':
+          description: Return an ATS partner if found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1122
+                  name:
+                    type: string
+                    example: JobAdder
+                  accountId:
+                    type: string
+                    example: 12345
+                  accountAdminId:
+                    type: string
+                    example: 12345
+                  accessToken:
+                    type: string
+                    example: Bearer c5e7b57d3d89acd04cf0af96ddd01010
+                  refreshToken:
+                    type: string
+                    example: c5e7b57d389acd04cf0af96ddd01010
+                  restUrl:
+                    type: string
+                    example: https://sandboxapi.jobadder.com/v2/
+                  createdDate:
+                    type: string
+                    format: date-time
+                    example: "2020-03-22T11:27:13.979Z"
+                  modifiedDate:
+                    type: string
+                    format: date-time
+                    example: "2020-03-22T11:27:13.979Z"
+
+  /ats-partner/jobadder/user/authenticate/{accountId}/{userId}:
+    get:
+      tags:
+        - ATS partners
+      summary: "Authenticate jobadder user using its ATS partner account id and user id from JobAdder and AWS, and return auth info received from AWS"
+      parameters:
+        - in: header
+          name: Authorization
+          example: Bearer 31ff7431b4c1dde02e386122702f5460
+          description: Machine to machine access token is required
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: accountId
+          description: ATS Partner account ID
+          required: true
+          schema:
+            type: string
+          example: 123-abc
+        - in: path
+          name: userId
+          description: ATS Partner user ID
+          required: true
+          schema:
+            type: string
+          example: 123-abc
+      responses:
+        '200':
+          description: Return auth info after authentication from AWS
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_token:
+                    type: string
+                    example: c5e7b57d3d89acd04cf0af96ddd01010
+                  refresh_token:
+                    type: string
+                    example: c5e7b57d3d89acd04cf0af96ddd01010
+                  access_token:
+                    type: string
+                    example: c5e7b57d3d89acd04cf0af96ddd01010
+                  expires_in:
+                    type: integer
+                    example: 3600
+                  token_type:
+                    type: string
+                    example: Bearer
+
+  /ats-partner/jobadder/token:
+    get:
+      tags:
+        - ATS partners
+      summary: "Get JobAdder access token by user email"
+      parameters:
+        - in: header
+          name: Authorization
+          example: Bearer 31ff7431b4c1dde02e386122702f5460
+          description: Machine to machine access token is required
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: userEmail
+          description:  JobAdder user email
+          required: true
+          schema:
+            type: string
+            format: email
+          example: user@jobadder.com
+      responses:
+        '200':
+          description: Return JobAdder access token
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 31ff7431b4c1dde02e386122702f5460
+
+  /ats-partner/jobadder/account:
+    get:
+      tags:
+        - ATS partners
+      summary: "Get JobAdder account by user email"
+      parameters:
+        - in: header
+          name: Authorization
+          example: Bearer 31ff7431b4c1dde02e386122702f5460
+          description: Machine to machine access token is required
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: userEmail
+          description:  JobAdder user email
+          required: true
+          schema:
+            type: string
+            format: email
+          example: user@jobadder.com
+      responses:
+        '200':
+          description: Return JobAdder account details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1122
+                  name:
+                    type: string
+                    example: JobAdder
+                  accountId:
+                    type: string
+                    example: 12345
+                  accountAdminId:
+                    type: string
+                    example: 12345
+                  accessToken:
+                    type: string
+                    example: Bearer c5e7b57d3d89acd04cf0af96ddd01010
+                  refreshToken:
+                    type: string
+                    example: c5e7b57d389acd04cf0af96ddd01010
+                  restUrl:
+                    type: string
+                    example: https://sandboxapi.jobadder.com/v2/
+                  createdDate:
+                    type: string
+                    format: date-time
+                    example: "2020-03-22T11:27:13.979Z"
+                  modifiedDate:
+                    type: string
+                    format: date-time
+                    example: "2020-03-22T11:27:13.979Z"
 
   /common/countries:
     get:
       tags:
-        - countries
-      summary: Get list of countries
+        - Countries
+      summary: Get list of all countries
       responses:
         '200':
-          description: Success
+          description: List of all countries
           content:
             application/json:
               schema:
@@ -36,7 +557,7 @@ paths:
   /common/countryByCode:
     get:
       tags:
-        - countries
+        - Countries
       summary: Get country full name
       parameters:
         - in: query
@@ -48,27 +569,118 @@ paths:
           required: true
       responses:
         '200':
-          description: Success
+          description: Full name of country
           content:
             text/plain:
               schema:
                 type: string
                 example: Ireland
 
-  /reports/users-report:
+  /memberships/purchase:
+    post:
+      tags:
+        - Memberships
+      summary: Purchase or upgrade membership
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                firstName:
+                  type: string
+                  example: Adam
+                lastName:
+                  type: string
+                  example: James
+                email:
+                  type: string
+                  example: email@allsorter.com
+                credits:
+                  type: integer
+                  example: 150
+                billingCycle:
+                  type: string
+                  example: Monthly
+                expiry:
+                  type: string
+                  example: '2019-05-30'
+                invoiceNo:
+                  type: string
+                  example: "23420-34335-3"
+                VATNo:
+                  type: string
+                  example: "IE1234567FA"
+                amount:
+                  type: integer
+                  example: 400
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 4
+                  email:
+                    type: string
+                    example: email@allsorter.com
+                  firstName:
+                    type: string
+                    example: Adam
+                  lastName:
+                    type: string
+                    example: James
+                  active:
+                    type: boolean
+                    example: true
+                  organizationId:
+                    type: integer
+                    example: 9999
+                  organizationName:
+                    type: string
+                    example: Allsorter
+                  credits:
+                    type: integer
+                    example: 150
+                  billingCycle:
+                    type: string
+                    example: Monthly
+                  expiry:
+                    type: string
+                    example: '2019-05-30'
+                  organizationActive:
+                    type: boolean
+                    example: true
+                  phone:
+                    type: string
+                    example: (01) 123 4567
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+                    example: Unable to find requested data
+                  message:
+                    type: string
+                    example: Bad Request
+
+  /memberships/invoice:
     get:
       tags:
-        - reports
-      summary: Get users report.
+        - Memberships
+      summary: Get invoice list by organization ID
       parameters:
         - in: query
           name: organizationId
-          example: 9999
-          description: Organization Id
           schema:
-            type: string
-          required: false
-
+            type: integer
+          required: true
       responses:
         '200':
           description: Success
@@ -78,112 +690,673 @@ paths:
                 type: array
                 items:
                   properties:
-                    userFirstName:
-                     type: string
-                     example: John
-                    userLastName:
-                     type: string
-                     example: Misko
-                    email:
-                     type: string
-                     example: john@adv.com
+                    id:
+                      type: integer
+                      example: 4
+                    invoiceNo:
+                      type: string
+                      example: "23420-2342-34"
+                    amount:
+                      type: integer
+                      example: 400
+                    VATNo:
+                      type: string
+                      example: "IE1234567FA"
+                    datetime:
+                      type: string
+                      example: "2019-04-30 10:50:00"
+                    userName:
+                      type: string
+                      example: username
                     organizationName:
-                     type: string
-                     example: All Sorter
-                    allocatedQuota:
-                     type: integer
-                     example: 150
-                    consumedQuota:
-                     type: integer
-                     example: 30
-                    active:
-                     type: boolean
-                     example: true
-                    quotaExpiryDate:
-                     type: string
-                     format: date
-                     example: 2019-12-31
-  /reports/organizations-report:
-    get:
+                      type: string
+                      example: org name
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+                    example: Unable to find requested data
+                  message:
+                    type: string
+                    example: Bad Request
+
+  /memberships/cancel:
+    patch:
       tags:
-        - reports
-      summary: Get organizations report.
+        - Memberships
+      summary: cancel subscription by organization
       parameters:
         - in: query
           name: organizationId
-          example: 9999
-          description: Organization Id
           schema:
-            type: string
-          required: false
+            type: integer
+          required: true
       responses:
         '200':
-          description: List of ogranizations
+          description: Subscription successfully canceled
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+                    example: Unable to find requested data
+                  message:
+                    type: string
+                    example: Bad Request
+  /memberships/extend-trial:
+    patch:
+      tags:
+        - Memberships
+      summary: extend the trial
+      parameters:
+        - in: query
+          name: email
+          schema:
+            type: string
+            example: email@allsorter.com
+          required: true
+        - in: query
+          name: credits
+          schema:
+            type: integer
+            example: 50
+          required: true
+      responses:
+        '200':
+          description: Updated User
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 4
+                  email:
+                    type: string
+                    example: email@tchadv.com
+                  firstName:
+                    type: string
+                    example: Adam
+                  lastName:
+                    type: string
+                    example: James
+                  active:
+                    type: boolean
+                    example: true
+                  organizationId:
+                    type: integer
+                    example: 9999
+                  organizationName:
+                    type: string
+                    example: All Sorter
+                  credits:
+                    type: integer
+                    example: 150
+                  billingCycle:
+                    type: string
+                    example: Monthly
+                  expiry:
+                    type: string
+                    example: '2019-05-30'
+                  organizationActive:
+                    type: boolean
+                    example: true
+                  phone:
+                    type: string
+                    example: (01) 123 4567
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+                    example: No user exists with given email address
+                  message:
+                    type: string
+                    example: Bad Request
+  /memberships/update-credits:
+    patch:
+      tags:
+        - Memberships
+      summary: Update credits of an ogranization
+      parameters:
+        - in: query
+          name: organizationId
+          schema:
+            type: integer
+            example: 9999
+          required: true
+        - in: query
+          name: credits
+          schema:
+            type: integer
+            example: 50
+          required: true
+        - in: query
+          name: expiry
+          schema:
+            type: string
+            format: date
+            example: '2019-12-31'
+          required: true
+      responses:
+        '200':
+          description: Organization with updated credits
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 4
+                  name:
+                    type: string
+                    example: All Sorter
+                  credits:
+                    type: integer
+                    example: 50
+                  billingCycle:
+                    type: string
+                    example: MONTHLY
+                  expiry:
+                    type: string
+                    example: '2020-06-30'
+                  active:
+                    type: boolean
+                    example: true
+                  consumedQuota:
+                    type: integer
+                    example: 10
+                  countryCode:
+                    type: integer
+                    example: 109
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                properties:
+                  detail:
+                    type: string
+                    example: Expiry date must be a future date
+                  message:
+                    type: string
+                    example: Bad Request
+
+  /organizations:
+    post:
+      tags:
+        - Organizations
+      summary: Create new organization
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: All Sorter
+                credits:
+                  type: integer
+                  example: 50
+                billingCycle:
+                  type: string
+                  example: MONTHLY
+                expiry:
+                  type: string
+                  example: '2020-06-30'
+                active:
+                  type: boolean
+                  example: true
+                logo:
+                  type: string
+                  example: file path
+                  format: binary
+                template:
+                  type: string
+                  example: file path
+                  format: binary
+                countryCode:
+                  type: integer
+                  example: 109
+      responses:
+        '200':
+          description: Newly create Organization
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 9999
+                  name:
+                    type: string
+                    example: All Sorter
+                  credits:
+                    type: integer
+                    example: 50
+                  billingCycle:
+                    type: string
+                    example: MONTHLY
+                  expiry:
+                    type: string
+                    example: '2020-06-30'
+                  active:
+                    type: boolean
+                    example: true
+                  logoFile:
+                    type: string
+                    example: file path
+                  templateFile:
+                    type: string
+                    example: file path
+                  countryCode:
+                    type: integer
+                    example: 109
+    put:
+      tags:
+        - Organizations
+      summary: Update organization
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                id:
+                  type: integer
+                  example: 9999
+                name:
+                  type: string
+                  example: All Sorter
+                credits:
+                  type: integer
+                  example: 50
+                billingCycle:
+                  type: string
+                  example: MONTHLY
+                expiry:
+                  type: string
+                  example: '2020-06-30'
+                active:
+                  type: boolean
+                  example: true
+                logo:
+                  type: string
+                  example: file path
+                  format: binary
+                template:
+                  type: string
+                  example: file path
+                  format: binary
+                countryCode:
+                  type: integer
+                  example: 109
+      responses:
+        '200':
+          description: Updated Organization
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 9999
+                  name:
+                    type: string
+                    example: All Sorter
+                  credits:
+                    type: integer
+                    example: 50
+                  billingCycle:
+                    type: string
+                    example: MONTHLY
+                  expiry:
+                    type: string
+                    example: '2020-06-30'
+                  active:
+                    type: boolean
+                    example: true
+                  logoFile:
+                    type: string
+                    example: file path
+                  templateFile:
+                    type: string
+                    example: file path
+                  consumedQuota:
+                    type: integer
+                    example: 10
+                  countryCode:
+                    type: integer
+                    example: 109
+    patch:
+      tags:
+        - Organizations
+      summary: Update organization status
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            example: 9999
+          required: true
+        - in: query
+          name: status
+          schema:
+            type: boolean
+          required: true
+          description: true or false
+      responses:
+        '200':
+          description: Organization status updated
+    get:
+      tags:
+        - Organizations
+      summary: Get organizations
+      parameters:
+        - in: query
+          name: includeImages
+          description: whether to include logo & template files in response
+          schema:
+            type: boolean
+        - in: query
+          name: includeConsumedQuota
+          schema:
+            type: boolean
+          description: flag to indicate if consumed quota is required in output
+      responses:
+        '200':
+          description: List of Organizations
           content:
             application/json:
               schema:
                 type: array
                 items:
                   properties:
-                    organizationName:
-                     type: string
-                     example: All Sorter
-                    allocatedQuota:
-                     type: integer
-                     example: 150
-                    consumedQuota:
-                     type: integer
-                     example: 30
+                    id:
+                      type: integer
+                      example: 9999
+                    name:
+                      type: string
+                      example: All Sorter
+                    credits:
+                      type: integer
+                      example: 50
+                    billingCycle:
+                      type: string
+                      example: MONTHLY
+                    expiry:
+                      type: string
+                      example: '2020-06-30'
                     active:
-                     type: boolean
-                     example: true
-                    quotaExpiryDate:
-                     type: string
-                     format: date
-                     example: 2019-12-31
-  /reports/parsing-report:
-    get:
-      tags:
-        - reports
-      summary: Get organization parsing report.
-      parameters:
-        - in: query
-          name: organizationId
-          example: 9999
-          description: Organization Id
-          schema:
-            type: string
-          required: false
-      responses:
-        '200':
-          description: Parsing history of an organization
+                      type: boolean
+                      example: true
+                    logoFile:
+                      type: string
+                      example: file path
+                    templateFile:
+                      type: string
+                      example: file path
+                    consumedQuota:
+                      type: integer
+                      example: 10
+                    countryCode:
+                      type: integer
+                      example: 109
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  properties:
-                    organizationName:
-                     type: string
-                     example: All Sorter
-                    userFirstName:
-                     type: string
-                     example: John
-                    userLastName:
-                     type: string
-                     example: Misko
-                    email:
-                     type: string
-                     example: john@adv.com
-                    parsingDateTime:
-                     type: string
-                     format: date-time
-                     example: 2019-12-31 10:50:35 AM
+                properties:
+                  detail:
+                    type: string
+                    example: Unable to find requested data
+                  message:
+                    type: string
+                    example: Bad Request
+
+  /organizations/{id}:
+    get:
+      tags:
+        - Organizations
+      summary: Get organization by Id
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+        - in: query
+          name: includeImages
+          schema:
+            type: boolean
+          description: flag to indicate if logo & tempate files are required in putput
+        - in: query
+          name: includeConsumedQuota
+          schema:
+            type: boolean
+          description: flag to indicate if consumed quota is required in output
+      responses:
+        '200':
+          description: An Organization
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 9999
+                  name:
+                    type: string
+                    example: All Sorter
+                  credits:
+                    type: integer
+                    example: 50
+                  billingCycle:
+                    type: string
+                    example: MONTHLY
+                  expiry:
+                    type: string
+                    example: '2020-06-30'
+                  active:
+                    type: boolean
+                    example: true
+                  logoFile:
+                    type: string
+                    example: file path
+                  templateFile:
+                    type: string
+                    example: file path
+                  consumedQuota:
+                    type: integer
+                    example: 10
+                  countryCode:
+                    type: integer
+                    example: 109
+
+  /organizations/configureDataDeletion:
+    post:
+      tags:
+        - Organizations
+      summary: Configure CVs data deletion policy for orgnizations
+      parameters:
+        - in: query
+          name: orgUUID
+          description: 'Organization UUID'
+          example: 'ad04eaba-68c8-48f8-943f-1d9077b17837'
+          schema:
+            type: string
+            format: uuid
+          required: true
+
+        - in: query
+          name: dataDeletionEnable
+          description: 'Is data deletion enable?'
+          example: true
+          schema:
+            type: boolean
+          required: true
+      responses:
+        '200':
+          description: Data deletion policy configured successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 123
+                  orgUUID:
+                    type: string
+                    example:  'ad04eaba-68c8-48f8-943f-1d9077b17837'
+                  dataDeletionEnable:
+                    type: boolean
+                    example: true
+                  frequencyTimePeriod:
+                    type: string
+                    example: MONTH
+                  frequencyInterval:
+                    type: string
+                    example: 1
+                  updateTimestamp:
+                    type: string
+                    format: date
+                    example: '2020-04-03T10:32:31.919'
+                  creationTimestamp:
+                    type: string
+                    format: date
+                    example: '2020-04-03T10:32:31.919'
+
+  /organizations/updateDataDeletionFrequency:
+    post:
+      tags:
+        - Organizations
+      summary: Update CVs data deletion frequency for orgnizations
+      parameters:
+        - in: query
+          name: orgUUID
+          description: 'Organization UUID'
+          example: 'ad04eaba-68c8-48f8-943f-1d9077b17837'
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: query
+          name: frequencyTimePeriod
+          description: 'Frequency time period'
+          example: MONTH
+          schema:
+            type: string
+            enum: [
+              "Hour",
+              "Day",
+              "Week",
+              "Month",
+              "Year"
+            ]
+        - in: query
+          name: frequencyInterval
+          example: 1
+          schema:
+            type: integer
+          required: true
+
+      responses:
+        '200':
+          description: Updated Data deletion policy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 123
+                  orgUUID:
+                    type: string
+                    example:  'ad04eaba-68c8-48f8-943f-1d9077b17837'
+                  dataDeletionEnable:
+                    type: boolean
+                    example: true
+                  frequencyTimePeriod:
+                    type: string
+                    example: MONTH
+                  frequencyInterval:
+                    type: string
+                    example: 1
+                  updateTimestamp:
+                    type: string
+                    format: date
+                    example: '2020-04-03T10:32:31.919'
+                  creationTimestamp:
+                    type: string
+                    format: date
+                    example: '2020-04-03T10:32:31.919'
+
+  /organizations/dataDeletionConfiguration:
+    post:
+      tags:
+        - Organizations
+      summary: Current data deletion configuration for organization
+      parameters:
+        - in: query
+          name: orgUUID
+          description: 'Organization UUID'
+          example: 'ad04eaba-68c8-48f8-943f-1d9077b17837'
+          schema:
+            type: string
+            format: uuid
+          required: true
+
+      responses:
+        '200':
+          description: Current data deletion configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 123
+                  orgUUID:
+                    type: string
+                    example:  'ad04eaba-68c8-48f8-943f-1d9077b17837'
+                  dataDeletionEnable:
+                    type: boolean
+                    example: true
+                  frequencyTimePeriod:
+                    type: string
+                    example: MONTH
+                  frequencyInterval:
+                    type: string
+                    example: 1
+                  updateTimestamp:
+                    type: string
+                    format: date
+                    example: '2020-04-03T10:32:31.919'
+                  creationTimestamp:
+                    type: string
+                    format: date
+                    example: '2020-04-03T10:32:31.919'
+
   /parser/parse:
     post:
       tags:
-        - parsers
-      summary: parse given resume according to allSorter standards and return extracted data in xml format
+        - Parsers
+      summary: parse given resume according to AllSorter standards and return extracted data in hr-xml format
       requestBody:
         content:
           multipart/form-data:
@@ -196,7 +1369,7 @@ paths:
         required: true
       responses:
         '200':
-          description: Success and returns xml
+          description: Success and returns hr-xml file
           content:
             text/xml:
               schema:
@@ -207,11 +1380,12 @@ paths:
                   value: '<firstName>James</firstName>'
         '500':
           description: Unable to parse
+
   /parser/more:
     post:
       tags:
-        - parsers
-      summary: returned an already parsed resume in xml format
+        - Parsers
+      summary: return some more details about CV, which were missed in previously parsed hr-xml file
       requestBody:
         content:
           multipart/form-data:
@@ -234,10 +1408,11 @@ paths:
                   value: '<firstName>James</firstName>'
         '404':
           description: Xml not found
+
   /parsers/viewHtml:
     post:
       tags:
-        - parsers
+        - Parsers
       summary: returned an already parsed resume in html format
       requestBody:
         content:
@@ -258,10 +1433,200 @@ paths:
                 example: <div>Html view of Resume</div>
         '404':
           description: Html view not found
+
+  /reports/users-report:
+    get:
+      tags:
+        - Reports
+      summary: List of users report, org id is optional
+      parameters:
+        - in: query
+          name: organizationId
+          example: 9999
+          description: Organization Id
+          schema:
+            type: string
+          required: false
+
+      responses:
+        '200':
+          description: Return a list of user report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    userFirstName:
+                      type: string
+                      example: John
+                    userLastName:
+                      type: string
+                      example: Misko
+                    email:
+                      type: string
+                      example: john@adv.com
+                    organizationName:
+                      type: string
+                      example: All Sorter
+                    allocatedQuota:
+                      type: integer
+                      example: 150
+                    consumedQuota:
+                      type: integer
+                      example: 30
+                    active:
+                      type: boolean
+                      example: true
+                    quotaExpiryDate:
+                      type: string
+                      format: date
+                      example: 2019-12-31
+  /reports/organizations-report:
+    get:
+      tags:
+        - Reports
+      summary: Get organizations report by org ID
+      parameters:
+        - in: query
+          name: organizationId
+          example: 9999
+          description: Organization Id
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: List of ogranizations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    organizationName:
+                      type: string
+                      example: All Sorter
+                    allocatedQuota:
+                      type: integer
+                      example: 150
+                    consumedQuota:
+                      type: integer
+                      example: 30
+                    active:
+                      type: boolean
+                      example: true
+                    quotaExpiryDate:
+                      type: string
+                      format: date
+                      example: 2019-12-31
+  /reports/parsing-report:
+    get:
+      tags:
+        - Reports
+      summary: CVs parsing report, org ID is optional
+      parameters:
+        - in: query
+          name: organizationId
+          example: 9999
+          description: Organization Id
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: dateFrom
+          description: Start date for report
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: dateTo
+          description: End date for report
+          schema:
+            type: string
+            format: date
+          required: true
+
+      responses:
+        '200':
+          description: Parsing history of an organization
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    organizationName:
+                      type: string
+                      example: All Sorter
+                    userFirstName:
+                      type: string
+                      example: John
+                    userLastName:
+                      type: string
+                      example: Misko
+                    email:
+                      type: string
+                      example: john@adv.com
+                    parsingDateTime:
+                      type: string
+                      format: date-time
+                      example: 2019-12-31 10:50:35 AM
+
+  /reports/credit-assignment-report:
+    get:
+      tags:
+        - Reports
+      summary: Report for credits assignment, Who assigned, how many credites to whom
+      parameters:
+        - in: query
+          name: dateFrom
+          description: Start date for report
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: dateTo
+          description: End date for report
+          schema:
+            type: string
+            format: date
+          required: true
+
+      responses:
+        '200':
+          description: Credits assignment history, Who assigned, how many credites to whom
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    assignorEmail:
+                      type: string
+                      example: email@allsorter.com
+                    assigneeOrganizationName:
+                      type: string
+                      example: Allsorter
+                    assigneeUserName:
+                      type: string
+                      example: John
+                    credits:
+                      type: integer
+                      example: 100
+                    createdDateTime:
+                      type: string
+                      format: date-time
+                      example: 2019-12-31 10:50:35 AM
+
+
+
   /users:
     post:
       tags:
-        - users
+        - Users
       summary: Create user profile
       requestBody:
         required: true
@@ -329,7 +1694,7 @@ paths:
                     example: +334464564564
     put:
       tags:
-        - users
+        - Users
       summary: Update user profile
       requestBody:
         required: true
@@ -350,8 +1715,8 @@ paths:
                   type: string
                   example: john@adv.com
                 active:
-                    type: boolean
-                    example: true
+                  type: boolean
+                  example: true
                 phone:
                   type: string
                   example: +334464564564
@@ -403,7 +1768,7 @@ paths:
                     example: +334464564564
     get:
       tags:
-        - users
+        - Users
       summary: Get user profile
       parameters:
         - in: query
@@ -471,7 +1836,7 @@ paths:
   /users/{id}:
     get:
       tags:
-        - users
+        - Users
       summary: Get user profile by Id
       parameters:
         - in: path
@@ -525,7 +1890,7 @@ paths:
   /users/list:
     get:
       tags:
-        - users
+        - Users
       summary: Get users by given criteria
       parameters:
         - in: query
@@ -553,642 +1918,69 @@ paths:
                 items:
                   properties:
                     id:
-                     type: integer
-                     example: 4
-                    email:
-                     type: string
-                     example: john@adv.com
-                    firstName:
-                     type: string
-                     example: John
-                    lastName:
-                     type: string
-                     example: Misko
-                    active:
-                     type: boolean
-                     example: true
-                    organizationId:
-                     type: integer
-                     example: 2342
-                    organizationName:
-                     type: string
-                     example: All Sorter
-                    credits:
-                     type: integer
-                     example: 150
-                    billingCycle:
-                     type: string
-                     example: Monthly
-                    expiry:
-                     type: string
-                     example: '2019-05-30'
-                    organizationActive:
-                     type: boolean
-                     example: true
-                    phone:
-                     type: string
-                     example: +334464564564
-  /purchase:
-    post:
-      tags:
-        - memberships
-      summary: Purchase or upgrade membership
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                firstName:
-                  type: string
-                  example: Adam
-                lastName:
-                  type: string
-                  example: James
-                email:
-                  type: string
-                  example: email@tchadv.com
-                credits:
-                  type: integer
-                  example: 150
-                billingCycle:
-                  type: string
-                  example: Monthly
-                expiry:
-                  type: string
-                  example: '2019-05-30'
-                invoiceNo:
-                  type: string
-                  example: "23420-34335-3"
-                VATNo:
-                  type: string
-                  example: "IE1234567FA"
-                amount:
-                  type: integer
-                  example: 400
-        required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                properties:
-                  id:
-                    type: integer
-                    example: 4
-                  email:
-                    type: string
-                    example: email@tchadv.com
-                  firstName:
-                    type: string
-                    example: Adam
-                  lastName:
-                    type: string
-                    example: James
-                  active:
-                    type: boolean
-                    example: true
-                  organizationId:
-                    type: integer
-                    example: 9999
-                  organizationName:
-                    type: string
-                    example: All Sorter
-                  credits:
-                    type: integer
-                    example: 150
-                  billingCycle:
-                    type: string
-                    example: Monthly
-                  expiry:
-                    type: string
-                    example: '2019-05-30'
-                  organizationActive:
-                    type: boolean
-                    example: true
-                  phone:
-                    type: string
-                    example: (01) 123 4567
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                properties:
-                  detail:
-                    type: string
-                    example: Unable to find requested data
-                  message:
-                    type: string
-                    example: Bad Request
-  /invoice:
-    get:
-      tags:
-        - memberships
-      summary: get invoice list by organization
-      parameters:
-        - in: query
-          name: organizationId
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  properties:
-                    id:
                       type: integer
                       example: 4
-                    invoiceNo:
+                    email:
                       type: string
-                      example: "23420-2342-34"
-                    amount:
+                      example: john@adv.com
+                    firstName:
+                      type: string
+                      example: John
+                    lastName:
+                      type: string
+                      example: Misko
+                    active:
+                      type: boolean
+                      example: true
+                    organizationId:
                       type: integer
-                      example: 400
-                    VATNo:
-                      type: string
-                      example: "IE1234567FA"
-                    datetime:
-                      type: string
-                      example: "2019-04-30 10:50:00"
-                    userName:
-                      type: string
-                      example: username
+                      example: 2342
                     organizationName:
-                      type: string
-                      example: org name
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                properties:
-                  detail:
-                    type: string
-                    example: Unable to find requested data
-                  message:
-                    type: string
-                    example: Bad Request
-  /cancel:
-    patch:
-      tags:
-        - memberships
-      summary: cancel subscription by organization
-      parameters:
-        - in: query
-          name: organizationId
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Subscription successfully canceled
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                properties:
-                  detail:
-                    type: string
-                    example: Unable to find requested data
-                  message:
-                    type: string
-                    example: Bad Request
-  /extend-trial:
-    patch:
-      tags:
-        - memberships
-      summary: extend the trial
-      parameters:
-        - in: query
-          name: email
-          schema:
-            type: string
-            example: email@tchadv.com
-          required: true
-        - in: query
-          name: credits
-          schema:
-            type: integer
-            example: 50
-          required: true
-      responses:
-       '200':
-          description: Updated User
-          content:
-            application/json:
-              schema:
-                properties:
-                  id:
-                    type: integer
-                    example: 4
-                  email:
-                    type: string
-                    example: email@tchadv.com
-                  firstName:
-                    type: string
-                    example: Adam
-                  lastName:
-                    type: string
-                    example: James
-                  active:
-                    type: boolean
-                    example: true
-                  organizationId:
-                    type: integer
-                    example: 9999
-                  organizationName:
-                    type: string
-                    example: All Sorter
-                  credits:
-                    type: integer
-                    example: 150
-                  billingCycle:
-                    type: string
-                    example: Monthly
-                  expiry:
-                    type: string
-                    example: '2019-05-30'
-                  organizationActive:
-                    type: boolean
-                    example: true
-                  phone:
-                    type: string
-                    example: (01) 123 4567
-       '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                properties:
-                  detail:
-                    type: string
-                    example: No user exists with given email address
-                  message:
-                    type: string
-                    example: Bad Request
-  /update-credits:
-    patch:
-      tags:
-        - memberships
-      summary: Update credits of an ogranization
-      parameters:
-        - in: query
-          name: organizationId
-          schema:
-            type: integer
-            example: 9999
-          required: true
-        - in: query
-          name: credits
-          schema:
-            type: integer
-            example: 50
-          required: true
-        - in: query
-          name: expiry
-          schema:
-            type: string
-            format: date
-            example: '2019-12-31'
-          required: true
-      responses:
-       '200':
-          description: Updated Organization
-          content:
-            application/json:
-              schema:
-                properties:
-                  id:
-                    type: integer
-                    example: 4
-                  name:
-                    type: string
-                    example: All Sorter
-                  credits:
-                    type: integer
-                    example: 50
-                  billingCycle:
-                    type: string
-                    example: MONTHLY
-                  expiry:
-                    type: string
-                    example: '2020-06-30'
-                  active:
-                    type: boolean
-                    example: true
-                  consumedQuota:
-                    type: integer
-                    example: 10
-                  countryCode:
-                    type: integer
-                    example: 109
-       '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                properties:
-                  detail:
-                    type: string
-                    example: Expiry date must be a future date
-                  message:
-                    type: string
-                    example: Bad Request
-  /organizations:
-    post:
-      tags:
-        - organizations
-      summary: Create new organization
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              properties:
-                name:
-                  type: string
-                  example: All Sorter
-                credits:
-                  type: integer
-                  example: 50
-                billingCycle:
-                  type: string
-                  example: MONTHLY
-                expiry:
-                  type: string
-                  example: '2020-06-30'
-                active:
-                  type: boolean
-                  example: true
-                logo:
-                  type: string
-                  example: file path
-                  format: binary
-                template:
-                  type: string
-                  example: file path
-                  format: binary
-                countryCode:
-                    type: integer
-                    example: 109
-      responses:
-        '200':
-          description: Newly create Organization
-          content:
-            application/json:
-              schema:
-                properties:
-                  id:
-                    type: integer
-                    example: 9999
-                  name:
-                    type: string
-                    example: All Sorter
-                  credits:
-                    type: integer
-                    example: 50
-                  billingCycle:
-                    type: string
-                    example: MONTHLY
-                  expiry:
-                    type: string
-                    example: '2020-06-30'
-                  active:
-                    type: boolean
-                    example: true
-                  logoFile:
-                    type: string
-                    example: file path
-                  templateFile:
-                    type: string
-                    example: file path
-                  countryCode:
-                    type: integer
-                    example: 109
-    put:
-      tags:
-        - organizations
-      summary: Update organization
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              properties:
-                id:
-                  type: integer
-                  example: 9999
-                name:
-                  type: string
-                  example: All Sorter
-                credits:
-                  type: integer
-                  example: 50
-                billingCycle:
-                  type: string
-                  example: MONTHLY
-                expiry:
-                  type: string
-                  example: '2020-06-30'
-                active:
-                  type: boolean
-                  example: true
-                logo:
-                  type: string
-                  example: file path
-                  format: binary
-                template:
-                  type: string
-                  example: file path
-                  format: binary
-                countryCode:
-                    type: integer
-                    example: 109
-      responses:
-        '200':
-          description: Updated Organization
-          content:
-            application/json:
-              schema:
-                properties:
-                  id:
-                    type: integer
-                    example: 9999
-                  name:
-                    type: string
-                    example: All Sorter
-                  credits:
-                    type: integer
-                    example: 50
-                  billingCycle:
-                    type: string
-                    example: MONTHLY
-                  expiry:
-                    type: string
-                    example: '2020-06-30'
-                  active:
-                    type: boolean
-                    example: true
-                  logoFile:
-                    type: string
-                    example: file path
-                  templateFile:
-                    type: string
-                    example: file path
-                  consumedQuota:
-                    type: integer
-                    example: 10
-                  countryCode:
-                    type: integer
-                    example: 109
-    patch:
-      tags:
-        - organizations
-      summary: Update organization status
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-            example: 9999
-          required: true
-        - in: query
-          name: status
-          schema:
-            type: boolean
-          required: true
-          description: true or false
-      responses:
-        '200':
-          description: Organization status updated
-    get:
-      tags:
-        - organizations
-      summary: Get organizations
-      parameters:
-        - in: query
-          name: includeImages
-          description: whether to include logo & template files in response
-          schema:
-            type: boolean
-        - in: query
-          name: includeConsumedQuota
-          schema:
-            type: boolean
-          description: flag to indicate if consumed quota is required in output
-      responses:
-        '200':
-          description: List of Organizations
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  properties:
-                    id:
-                      type: integer
-                      example: 9999
-                    name:
                       type: string
                       example: All Sorter
                     credits:
                       type: integer
-                      example: 50
+                      example: 150
                     billingCycle:
                       type: string
-                      example: MONTHLY
+                      example: Monthly
                     expiry:
                       type: string
-                      example: '2020-06-30'
-                    active:
+                      example: '2019-05-30'
+                    organizationActive:
                       type: boolean
                       example: true
-                    logoFile:
+                    phone:
                       type: string
-                      example: file path
-                    templateFile:
-                      type: string
-                      example: file path
-                    consumedQuota:
-                      type: integer
-                      example: 10
-                    countryCode:
-                      type: integer
-                      example: 109
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                properties:
-                  detail:
-                    type: string
-                    example: Unable to find requested data
-                  message:
-                    type: string
-                    example: Bad Request
-  /organizations/{id}:
+                      example: +334464564564
+
+  /users/user/organization-uuid:
     get:
       tags:
-        - organizations
-      summary: Get organization by Id
+        - Users
+      summary: Get user's organiozation UUID
       parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
         - in: query
-          name: includeImages
+          name: userEmail
+          description: User's email
           schema:
-            type: boolean
-          description: flag to indicate if logo & tempate files are required in putput
+            type: string
+            format: email
         - in: query
-          name: includeConsumedQuota
+          name: userUUID
+          description: User's UUID
           schema:
-            type: boolean
-          description: flag to indicate if consumed quota is required in output
+            type: string
+            format: uuid
       responses:
         '200':
-          description: An Organization
+          description: Return user's org uuid
           content:
-            application/json:
+            text/plain:
               schema:
-                properties:
-                  id:
-                    type: integer
-                    example: 9999
-                  name:
-                    type: string
-                    example: All Sorter
-                  credits:
-                    type: integer
-                    example: 50
-                  billingCycle:
-                    type: string
-                    example: MONTHLY
-                  expiry:
-                    type: string
-                    example: '2020-06-30'
-                  active:
-                    type: boolean
-                    example: true
-                  logoFile:
-                    type: string
-                    example: file path
-                  templateFile:
-                    type: string
-                    example: file path
-                  consumedQuota:
-                    type: integer
-                    example: 10
-                  countryCode:
-                    type: integer
-                    example: 109
+                type: string
+                example: 61d7d2f1-6502-4761-ac3d-0f9922339a46
+
+
+
+
